@@ -1,0 +1,75 @@
+=======Lab 2 Linux Admin Storage======
+	-----Mark Davis-----
+	----Feb 6, 2022-----
+
+
+ssh root@100.64.12.1 'machineA' --access point
+--original password (identikey)
+
+ssh root@10.21.32.2 'machineE'  --file server
+--original password 'saclass'
+
+pvcreate /dev/sdb
+'new physical volume created'
+
+vgcreate new /dev/sdb
+'new volume grouped created'
+
+vgs --show short volume group
+vgdisplay --full display
+
+lvcreate -n home -L 4g new
+'new logical volume (home) created'
+lvcreate -n home -L 4g new
+'new logical volume (tmp) created'
+
+lvs --show short logical volume
+lvdisplay --full display
+
+mkfs.xfs /dev/new/home
+'filesystem created (home)'
+mkfs.xfs /dev/new/tmp
+'filesystem created (tmp)'
+
+Making directories for mounting
+mkdir /new_home
+mkdir /new_tmp
+
+mount -t xfs /dev/new/home /new_home
+mount -t xfs /dev/new/tmp /new_tmp
+
+cp -Prp /home/* /new_home/
+cp -Prp /tmp/* /new_tmp/
+--copying files recursively preserving permissions
+
+diff -r /home/ /new_home/
+diff -r /tmp/ /new_tmp/
+--checking if I got it all
+---tmp had some directory (links?) I couldn't get to copy
+
+Tried this to shift all accounts home directories to new place
+but users do not exist in /etc/passwd
+cd /new_home/
+for i in *; do $(echo "usermod -d /new_home/$i $i"); done
+--found out later that we were moving mount point
+---so this would not be needed anyway, I don't believe
+
+rm -rf /home/*
+rm -rf /tmp/*
+--reclaiming all the space
+
+vi /etc/fstab
+--edit file to persist with new drive
+
+df -h
+--check usage is managed
+
+rmdir /new_home/
+rmdir /new_tmp/
+--remove old tmp mount points
+
+reboot now
+--verify everything works
+
+LOOKS GOOD!!
+
